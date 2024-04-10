@@ -83,6 +83,13 @@ enum CRIPSanitize {
     CRIP_SANITIZE_OS_UNICODE, /* Same as above, but only replaces symbols not allowed on current OS */
 };
 
+enum coverart_lookup_sizes {
+    COVERART_LOOKUP_SIZE_ORIGINAL = 0,
+    COVERART_LOOKUP_SIZE_250,
+    COVERART_LOOKUP_SIZE_500,
+    COVERART_LOOKUP_SIZE_1200
+};
+
 typedef struct cyanrip_settings {
     char *dev_path;
     char *folder_name_scheme;
@@ -110,6 +117,7 @@ typedef struct cyanrip_settings {
     int force_deemphasis;
     int ripping_retries;
     int disable_coverart_embedding;
+    enum coverart_lookup_sizes coverart_lookup_size;
     int enable_replaygain;
 
     enum cyanrip_output_formats outputs[CYANRIP_FORMATS_NB];

@@ -122,6 +122,7 @@ Arguments are optional, except `-s`. By default cyanrip will rip all tracks from
 | -N                   | Disables MusicBrainz lookup and ignores lack of manual metadata to continue                 |
 | -A                   | Disables AccurateRip database query and comparison                                          |
 | -U                   | Disables Cover art DB database query and retrieval                                          |
+| -m                   | Lookup cover art with max size: 250, 500, 1200, -1 (no limit, default)                      |
 | -G                   | Disables embedding of cover art images                                                      |
 |                      | **Misc. options**                                                                           |
 | -Q                   | Eject CD tray if ripping has been successfully completed                                    |

@@ -361,7 +361,8 @@ int crip_fill_coverart(cyanrip_ctx *ctx, int info_only)
         } else if (!ctx->settings.disable_coverart_db) {
             int has_err = 0;
             if (!have_front) {
-                has_err = fetch_image(ctx, curl_ctx, &ctx->cover_arts[ctx->nb_cover_arts], release_id, "front", info_only, NULL);
+                static const char *cover_ids[] = { "front", "front-250", "front-500", "front-1200" };
+                has_err = fetch_image(ctx, curl_ctx, &ctx->cover_arts[ctx->nb_cover_arts], release_id, cover_ids[ctx->settings.coverart_lookup_size], info_only, NULL);
                 if (has_err > 0) {
                     av_dict_set(&ctx->cover_arts[ctx->nb_cover_arts].meta, "title", "Front", 0);
                     av_dict_set(&ctx->cover_arts[ctx->nb_cover_arts].meta, "source", "Cover Art DB", 0);
@@ -370,7 +371,8 @@ int crip_fill_coverart(cyanrip_ctx *ctx, int info_only)
                 }
             }
             if (!have_back && (has_err > 0)) {
-                has_err = fetch_image(ctx, curl_ctx, &ctx->cover_arts[ctx->nb_cover_arts], release_id, "back", info_only, NULL);
+                static const char *cover_ids[] = { "back", "back-250", "back-500", "back-1200" };
+                has_err = fetch_image(ctx, curl_ctx, &ctx->cover_arts[ctx->nb_cover_arts], release_id, cover_ids[ctx->settings.coverart_lookup_size], info_only, NULL);
                 if (has_err > 0) {
                     av_dict_set(&ctx->cover_arts[ctx->nb_cover_arts].meta, "title", "Back", 0);
                     av_dict_set(&ctx->cover_arts[ctx->nb_cover_arts].meta, "source", "Cover Art DB", 0);

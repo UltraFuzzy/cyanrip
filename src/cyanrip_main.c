@@ -1415,6 +1415,7 @@ int main(int argc, char **argv)
     settings.print_info_only = 0;
     settings.disable_mb = 0;
     settings.disable_coverart_db = 0;
+    settings.coverart_lookup_size = COVERART_LOOKUP_SIZE_ORIGINAL;
     settings.decode_hdcd = 0;
     settings.deemphasis = 1;
     settings.force_deemphasis = 0;
@@ -1449,7 +1450,7 @@ int main(int argc, char **argv)
     int track_cover_arts_map[198] = { 0 };
     int nb_track_cover_arts = 0;
 
-    while ((c = getopt(argc, argv, "hNAUfHIVQEGWKOl:a:t:b:c:r:d:o:s:S:D:p:C:R:P:F:L:T:M:Z:")) != -1) {
+    while ((c = getopt(argc, argv, "hNAUfHIVQEGWKOl:a:t:b:c:r:d:o:s:S:D:p:C:R:P:F:L:T:M:Z:m:")) != -1) {
         switch (c) {
         case 'h':
             cyanrip_log(ctx, 0, "cyanrip %s (%s) help:\n", PROJECT_VERSION_STRING, vcstag);
@@ -1485,6 +1486,7 @@ int main(int argc, char **argv)
             cyanrip_log(ctx, 0, "    -N                    Disables MusicBrainz lookup and ignores lack of manual metadata\n");
             cyanrip_log(ctx, 0, "    -A                    Disables AccurateRip database query and validation\n");
             cyanrip_log(ctx, 0, "    -U                    Disables Cover art DB database query and retrieval\n");
+            cyanrip_log(ctx, 0, "    -m                    Lookup cover art with max size: 250, 500, 1200, -1 (no limit, default)\n");
             cyanrip_log(ctx, 0, "    -G                    Disables embedding of cover art images\n");
             cyanrip_log(ctx, 0, "\n  Misc. options:\n");
             cyanrip_log(ctx, 0, "    -Q                    Eject tray once successfully done\n");
@@ -1549,6 +1551,26 @@ int main(int argc, char **argv)
             break;
         case 'U':
             settings.disable_coverart_db = 1;
+            break;
+        case 'm':
+            long size = strtol(optarg, NULL, 10);
+            switch(size) {
+            case -1:
+                settings.coverart_lookup_size = COVERART_LOOKUP_SIZE_ORIGINAL;
+                break;
+            case 250:
+                settings.coverart_lookup_size = COVERART_LOOKUP_SIZE_250;
+                break;
+            case 500:
+                settings.coverart_lookup_size = COVERART_LOOKUP_SIZE_500;
+                break;
+            case 1200:
+                settings.coverart_lookup_size = COVERART_LOOKUP_SIZE_1200;
+                break;
+            default:
+                cyanrip_log(ctx, 0, "Invalid max coverart max size %i (must be 250, 500 or 1200)\n", size);
+                return 1;
+            }
             break;
         case 'b':
             settings.bitrate = strtof(optarg, NULL);
