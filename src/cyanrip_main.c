@@ -207,6 +207,13 @@ static int cyanrip_ctx_init(cyanrip_ctx **s, cyanrip_settings *settings)
         t->start_lsn = cdio_get_track_lsn(ctx->cdio, t->number);
         t->end_lsn = cdio_get_track_last_lsn(ctx->cdio, t->number);
 
+        if ((i == (ctx->nb_cd_tracks - 1)) && (t->end_lsn == CDIO_INVALID_LSN)) {
+            t->end_lsn = ctx->end_lsn;
+        } else if (t->end_lsn == CDIO_INVALID_LSN) {
+            cyanrip_log(ctx, 0, "CDIO returned invalid track %i end LSN\n", t->index);
+            return AVERROR(EINVAL);
+        }
+
         t->start_lsn_sig = t->start_lsn;
         t->end_lsn_sig = t->end_lsn;
 
