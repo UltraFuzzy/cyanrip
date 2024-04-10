@@ -109,9 +109,9 @@ typedef struct cyanrip_settings {
     int disable_coverart_db;
     int overread_leadinout;
     int eject_on_success_rip;
-    enum cyanrip_pregap_action pregap_action[99];
+    enum cyanrip_pregap_action pregap_action[198];
     int rip_indices_count;
-    int rip_indices[99];
+    int rip_indices[198];
     int paranoia_level;
     int deemphasis;
     int force_deemphasis;

@@ -1430,7 +1430,7 @@ int main(int argc, char **argv)
     settings.enable_replaygain = 1;
     settings.paranoia_level = FF_ARRAY_ELEMS(paranoia_level_map) - 1;
 
-    memset(settings.pregap_action, CYANRIP_PREGAP_DEFAULT, sizeof(settings.pregap_action));
+    memset(settings.pregap_action, CYANRIP_PREGAP_DEFAULT, 198*sizeof(*settings.pregap_action));
 
     int c, idx;
     char *p_save, *p;
