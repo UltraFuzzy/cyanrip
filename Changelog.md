@@ -1,3 +1,11 @@
+0.9.3
+=====
+ - FFmpeg 7.0 compatibility
+ - Added an option to specify the image size for cover lookup
+ - When only printing info, do not require an offset to be specified with -I
+ - Fix default pregap action setting for tracks after the first
+ - Better error handling
+
 0.9.2
 =====
  - ReplayGain 2.0 scanning and tagging
