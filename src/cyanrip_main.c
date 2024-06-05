@@ -1449,6 +1449,7 @@ int main(int argc, char **argv)
     int track_metadata_ptr_cnt = 0;
     int find_drive_offset_range = 0;
     int offset_set = 0;
+    int img_size = -1;
 
     CRIPArt cover_arts[32] = { 0 };
     int nb_cover_arts = 0;
@@ -1560,8 +1561,8 @@ int main(int argc, char **argv)
             settings.disable_coverart_db = 1;
             break;
         case 'm':
-            long size = strtol(optarg, NULL, 10);
-            switch(size) {
+            img_size = strtol(optarg, NULL, 10);
+            switch (img_size) {
             case -1:
                 settings.coverart_lookup_size = COVERART_LOOKUP_SIZE_ORIGINAL;
                 break;
@@ -1575,7 +1576,7 @@ int main(int argc, char **argv)
                 settings.coverart_lookup_size = COVERART_LOOKUP_SIZE_1200;
                 break;
             default:
-                cyanrip_log(ctx, 0, "Invalid max coverart max size %i (must be 250, 500 or 1200)\n", size);
+                cyanrip_log(ctx, 0, "Invalid max coverart max size %i (must be 250, 500 or 1200)\n", img_size);
                 return 1;
             }
             break;
