@@ -58,6 +58,9 @@ const cyanrip_out_fmt crip_fmt_info[] = {
 
 static void free_track(cyanrip_ctx *ctx, cyanrip_track *t)
 {
+    if (quit_now)
+        cyanrip_immediate_stop_encoding(ctx, t);
+
     for (int i = 0; i < ctx->settings.outputs_num; i++)
         cyanrip_end_track_encoding(&t->enc_ctx[i]);
 
@@ -818,7 +821,7 @@ end:
     av_free(last_checksums);
 
     t->total_repeats = total_repeats;
-    if (!ret) {
+    if (!quit_now && !ret) {
         cyanrip_finalize_encoding(ctx, t);
         if (ctx->settings.enable_replaygain)
             crip_replaygain_meta_track(ctx, t);

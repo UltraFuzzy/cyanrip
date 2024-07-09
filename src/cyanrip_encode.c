@@ -578,14 +578,26 @@ fail:
     return ret;
 }
 
-int cyanrip_reset_encoding(cyanrip_ctx *ctx, cyanrip_track *t)
+void cyanrip_immediate_stop_encoding(cyanrip_ctx *ctx, cyanrip_track *t)
 {
     for (int i = 0; i < ctx->settings.outputs_num; i++) {
         cyanrip_enc_ctx *s = t->enc_ctx[i];
+        if (s)
+            atomic_store(&s->quit, 1);
+    }
+}
 
-        atomic_store(&s->quit, 1);
-        pthread_mutex_unlock(&s->lock);
-        s->mutex_held = 0;
+int cyanrip_reset_encoding(cyanrip_ctx *ctx, cyanrip_track *t)
+{
+    cyanrip_immediate_stop_encoding(ctx, t);
+
+    for (int i = 0; i < ctx->settings.outputs_num; i++) {
+        cyanrip_enc_ctx *s = t->enc_ctx[i];
+
+        if (s->mutex_held) {
+            pthread_mutex_unlock(&s->lock);
+            s->mutex_held = 0;
+        }
     }
 
     for (int i = 0; i < ctx->settings.outputs_num; i++)
@@ -808,13 +820,12 @@ int cyanrip_end_track_encoding(cyanrip_enc_ctx **s)
 
     ctx = *s;
 
-    atomic_store(&ctx->quit, 1);
-
     if (ctx->mutex_held) {
         pthread_mutex_unlock(&ctx->lock);
         ctx->mutex_held = 0;
     }
 
+    /* Send EOF, needed in case we haven't sent it yet and the user cancels. */
     cr_frame_fifo_push(ctx->fifo, NULL);
     pthread_join(ctx->thread, NULL);
     pthread_mutex_destroy(&ctx->lock);
@@ -830,6 +841,8 @@ int cyanrip_end_track_encoding(cyanrip_enc_ctx **s)
     av_buffer_unref(&ctx->fifo);
     av_buffer_unref(&ctx->packet_fifo);
     av_packet_free(&ctx->cover_art_pkt);
+
+    atomic_store(&ctx->quit, 0);
 
     int status = ctx->status;
     av_freep(s);
