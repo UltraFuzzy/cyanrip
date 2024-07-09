@@ -492,7 +492,6 @@ static int filter_frame(cyanrip_ctx *ctx, cyanrip_enc_ctx **enc_ctx,
     if (!dec_ctx->filt.buffersrc_ctx)
         return push_frame_to_encs(ctx, enc_ctx, num_enc, frame);
 
-
     ret = av_buffersrc_add_frame_flags(dec_ctx->filt.buffersrc_ctx, frame,
                                        AV_BUFFERSRC_FLAG_NO_CHECK_FORMAT |
                                        AV_BUFFERSRC_FLAG_KEEP_REF);
@@ -879,16 +878,13 @@ static void *cyanrip_track_encoding(void *ctx)
         goto fail;
     }
 
-    while (1) {
+    while (!atomic_load(&s->quit)) {
         AVFrame *out_frame = NULL;
 
         if (!flushing) {
             out_frame = cr_frame_fifo_pop(s->fifo);
             flushing = !out_frame;
         }
-
-        if (atomic_load(&s->quit))
-            goto fail;
 
         ret = audio_process_frame(ctx, &out_frame, flushing);
         if (ret == AVERROR(EAGAIN))
@@ -905,7 +901,7 @@ static void *cyanrip_track_encoding(void *ctx)
         }
 
         /* Return loop */
-        while (1) {
+        while (!atomic_load(&s->quit)) {
             ret = avcodec_receive_packet(s->out_avctx, out_pkt);
             if (ret == AVERROR_EOF) {
                 ret = 0;
@@ -972,7 +968,7 @@ write_trailer:
             goto fail;
         }
 
-        while ((out_pkt = cr_packet_fifo_pop(s->packet_fifo))) {
+        while (!atomic_load(&s->quit) && (out_pkt = cr_packet_fifo_pop(s->packet_fifo))) {
             /* Send frames to lavf */
             ret = av_interleaved_write_frame(s->avf, out_pkt);
             av_packet_free(&out_pkt);
