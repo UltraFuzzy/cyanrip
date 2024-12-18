@@ -166,6 +166,7 @@ The output encoding(s) can be set via the `-o` option as a comma-separated list.
 | `mp3`       | Standard MP3 files                              | `.mp3`    | :heavy_check_mark:  | VBR, use -b to adjust the bitrate, default is 256 (kbps)  |
 | `vorbis`    | Standard Ogg/Vorbis files (in an OGG container) | `.ogg`    | ⬜                  | Use -b to adjust the bitrate, default is 256 (kbps)       |
 | `wav`       | Standard WAV files                              | `.wav`    | ⬜                  | 16-bit little endian signed audio, or 32-bit in HDCD mode |
+| `alac_mp4`  | Standard MP4 files (with ALAC encoding)         | `.mp4`    | :heavy_check_mark:  | Always uses maximum compression                           |
 | `aac_mp4`   | Standard MP4 files (with AAC encoding)          | `.mp4`    | :heavy_check_mark:  | Use -b to adjust the bitrate, default is 256 (kbps)       |
 | `opus_mp4`  | Standard MP4 files (with Opus encoding)         | `.mp4`    | :heavy_check_mark:  | Use -b to adjust the bitrate, default is 256 (kbps)       |
 | `pcm`       | Raw audio, 16-bits, two channel, little-endian  | `.raw`    | ⬜                  |                                                           |
