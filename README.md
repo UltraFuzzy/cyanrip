@@ -37,6 +37,11 @@ Or use your favorite AUR installation method.
 apt install cyanrip
 ```
 
+### OpenSUSE
+```bash
+zypper install cyanrip
+```
+
 ### Void Linux
 ```bash
 xbps-install -S cyanrip
