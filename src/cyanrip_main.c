@@ -57,14 +57,12 @@ const cyanrip_out_fmt crip_fmt_info[] = {
     [CYANRIP_FORMAT_PCM]      = { "pcm",      "PCM",  "pcm",   "s16le", 0,  0, 1, AV_CODEC_ID_NONE,      },
 };
 
-// TODO Fix cdio_get_media_changed() behavior for macOS upstream in libcdio.
-// Currently it always returns non-zero.
 static int get_media_changed(CdIo_t *cdio) {
-    #ifdef __APPLE__
+    const int rc = cdio_get_media_changed(cdio);
+    if (rc == 0 || rc == DRIVER_OP_UNSUPPORTED)
         return 0;
-    #else
-        return cdio_get_media_changed(cdio);
-    #endif
+    else
+        return 1;;
 }
 
 static void free_track(cyanrip_ctx *ctx, cyanrip_track *t)
