@@ -38,6 +38,7 @@
 #include "accurip.h"
 #include "os_compat.h"
 #include "cyanrip_encode.h"
+#include "pregap.h"
 
 int quit_now = 0;
 
@@ -215,7 +216,8 @@ static int cyanrip_ctx_init(cyanrip_ctx **s, cyanrip_settings *settings)
         t->index = i + 1;
         t->number = t->cd_track_number = i + first_track_nb;
         t->track_is_data = !cdio_cddap_track_audiop(ctx->drive, t->number);
-        t->pregap_lsn = cdio_get_track_pregap_lsn(ctx->cdio, t->number);
+        // t->pregap_lsn = cdio_get_track_pregap_lsn(ctx->cdio, t->number);
+        t->pregap_lsn = crip_get_track_pregap_lsn(ctx->cdio, t->number);
         t->dropped_pregap_start = CDIO_INVALID_LSN;
         t->merged_pregap_end = CDIO_INVALID_LSN;
         t->start_lsn = cdio_get_track_lsn(ctx->cdio, t->number);
@@ -550,6 +552,22 @@ static void track_read_extra(cyanrip_ctx *ctx, cyanrip_track *t)
     }
 }
 
+static double sample_peak_rel_amp(const uint8_t *data, const int bytes) {
+    const int16_t* samples = (int16_t*)data;
+    const int bytes_per_sample = 2;
+    const int sample_num = bytes / bytes_per_sample;
+
+    /* At least int32 needed to accomodate abs(-INT16_MIN) */
+    int_fast32_t sample_peak = 0;
+    for (int i = 0; i < sample_num; ++i) {
+        const int_fast32_t abs_sample = abs((int_fast32_t)samples[i]);
+        sample_peak = FFMAX(sample_peak, abs_sample);
+    }
+
+    const double sample_peak_max = abs(INT16_MIN);
+    return (double)sample_peak/sample_peak_max;
+}
+
 static int cyanrip_rip_track(cyanrip_ctx *ctx, cyanrip_track *t)
 {
     int ret = 0;
@@ -615,6 +633,7 @@ repeat_ripping:;
     }
 
     int64_t frame_last_read = av_gettime_relative();
+    double track_sample_peak_rel_amp_precise = 0.0;
 
     /* Read the actual CD data */
     for (int i = 0; i < frames; i++) {
@@ -657,6 +676,11 @@ repeat_ripping:;
 
         /* Update checksums */
         crip_process_checksums(&checksum_ctx, data, bytes);
+
+        /* Update sample peak */
+        const double frame_sample_peak_rel_amp_precise = sample_peak_rel_amp(data, bytes);
+        track_sample_peak_rel_amp_precise =
+            FFMAX(frame_sample_peak_rel_amp_precise, track_sample_peak_rel_amp_precise);
 
         /* Decode and encode */
         if (!ctx->settings.ripping_retries || repeat_mode_encode) {
@@ -834,6 +858,14 @@ end:
     t->total_repeats = total_repeats;
     if (!quit_now && !ret) {
         cyanrip_finalize_encoding(ctx, t);
+        const double track_true_peak_rel_amp_ebu = pow(10, t->ebu_true_peak/20);
+        const double track_sample_peak_rel_amp_ebu = pow(10, t->ebu_sample_peak/20);
+        cyanrip_log(ctx, 0, "  Sample peak relative amplitude (calculated from ebur128 dBFS):\n");
+        cyanrip_log(ctx, 0, "    Peak:        %f\n\n", track_sample_peak_rel_amp_ebu); 
+        cyanrip_log(ctx, 0, "  Sample peak relative amplitude (precise):\n");
+        cyanrip_log(ctx, 0, "    Peak:        %f\n\n", track_sample_peak_rel_amp_precise); 
+        cyanrip_log(ctx, 0, "  True peak relative amplitude (calculated from ebur128 dBFS):\n");
+        cyanrip_log(ctx, 0, "    Peak:        %f\n\n", track_true_peak_rel_amp_ebu); 
         if (ctx->settings.enable_replaygain)
             crip_replaygain_meta_track(ctx, t);
         cyanrip_log_track_end(ctx, t);
@@ -1395,7 +1427,7 @@ char *crip_get_path(cyanrip_ctx *ctx, enum CRIPPathType type, int create_dirs,
 end:
     for (int i = 0; i < dir_list_nb; i++) {
         if (create_dirs) {
-            struct stat st_req = { 0 };
+            crip_stat_t st_req = { 0 };
             if (crip_stat(dir_list[i], &st_req) == -1)
                 mkdir(dir_list[i], 0700);
         }
