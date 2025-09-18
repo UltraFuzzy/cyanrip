@@ -57,6 +57,16 @@ const cyanrip_out_fmt crip_fmt_info[] = {
     [CYANRIP_FORMAT_PCM]      = { "pcm",      "PCM",  "pcm",   "s16le", 0,  0, 1, AV_CODEC_ID_NONE,      },
 };
 
+// TODO Fix cdio_get_media_changed() behavior for macOS upstream in libcdio.
+// Currently it always returns non-zero.
+static int get_media_changed(CdIo_t *cdio) {
+    #ifdef __APPLE__
+        return 0;
+    #else
+        return cdio_get_media_changed(cdio);
+    #endif
+}
+
 static void free_track(cyanrip_ctx *ctx, cyanrip_track *t)
 {
     if (quit_now)
@@ -250,7 +260,7 @@ static int cyanrip_ctx_init(cyanrip_ctx **s, cyanrip_settings *settings)
     }
 
     /* For hot removal detection - init this so we can detect changes */
-    cdio_get_media_changed(ctx->cdio);
+    get_media_changed(ctx->cdio);
 
     *s = ctx;
     return 0;
@@ -609,7 +619,7 @@ repeat_ripping:;
     /* Read the actual CD data */
     for (int i = 0; i < frames; i++) {
         /* Detect disc removals */
-        if (cdio_get_media_changed(ctx->cdio)) {
+        if (get_media_changed(ctx->cdio)) {
             cyanrip_log(ctx, 0, "\nDrive media changed, stopping!\n");
             ret = AVERROR(EINVAL);
             goto fail;
@@ -2103,7 +2113,7 @@ int main(int argc, char **argv)
                 track_read_extra(ctx, t);
                 cyanrip_log_track_end(ctx, t);
 
-                if (cdio_get_media_changed(ctx->cdio)) {
+                if (get_media_changed(ctx->cdio)) {
                     cyanrip_log(ctx, 0, "Drive media changed, stopping!\n");
                     break;
                 }
@@ -2196,7 +2206,7 @@ int main(int argc, char **argv)
                 track_read_extra(ctx, t);
                 cyanrip_log_track_end(ctx, t);
 
-                if (cdio_get_media_changed(ctx->cdio)) {
+                if (get_media_changed(ctx->cdio)) {
                     cyanrip_log(ctx, 0, "Drive media changed, stopping!\n");
                     break;
                 }
