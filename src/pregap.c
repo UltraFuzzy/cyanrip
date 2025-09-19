@@ -235,7 +235,7 @@ static driver_return_code_t get_lba_index(
     #ifdef __APPLE__
         return get_lba_index_osx(p_cdio, i_lsn, user_subq, index_p);
     #else
-        return get_lsn_index_mmc(p_cdio, i_lsn, user_subq, index_p);
+        return get_lba_index_mmc(p_cdio, i_lsn, user_subq, index_p);
     #endif
 }
 
