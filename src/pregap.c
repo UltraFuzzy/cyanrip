@@ -209,7 +209,7 @@ static driver_return_code_t get_lba_index_osx(
     const CDSectorSize cdda_sect_size_subq = 16;
     const CDSectorSize sect_read_size = cdda_sect_size_user + cdda_sect_size_subq;
     dk_cd_read_t cd_read = {
-        .offset = i_lsn*sect_read_size,
+        .offset = cdio_lba_to_lsn(i_lsn)*sect_read_size,
         .sectorArea = kCDSectorAreaUser | kCDSectorAreaSubChannelQ,
         .sectorType = kCDSectorTypeCDDA,
         .bufferLength = sizeof(user_subq_t),
