@@ -39,6 +39,7 @@ static inline int utf8towchar(const char *filename_utf8, wchar_t **filename_w)
     MultiByteToWideChar(CP_UTF8, 0, filename_utf8, -1, *filename_w, num_chars);
     return 0;
 }
+
 static inline int win32_mkdir(const char *filename_utf8)
 {
     wchar_t *filename_w;
