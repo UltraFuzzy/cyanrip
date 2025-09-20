@@ -50,7 +50,7 @@ static inline int win32_mkdir(const char *filename_utf8)
     return ret;
 }
 
-static inline int crip_stat(const char *filename_utf8, cyanrip_stat_t* statbuf)
+static inline int cyanrip_stat(const char *filename_utf8, cyanrip_stat_t* statbuf)
 {
     wchar_t *filename_w;
     int ret;
@@ -66,7 +66,7 @@ static inline int crip_stat(const char *filename_utf8, cyanrip_stat_t* statbuf)
 #define mkdir(path, mode) win32_mkdir(path)
 #else
 typedef struct stat cyanrip_stat_t;
-#define crip_stat stat
+#define cyanrip_stat stat
 #endif
 
 #if defined(__MACH__)
