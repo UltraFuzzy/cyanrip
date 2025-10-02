@@ -329,7 +329,7 @@ static int mb_metadata(cyanrip_ctx *ctx, int manual_metadata_specified, int rele
     READ_MB(mb5_release_get_barcode, release, ctx->meta, "barcode", 0);
     READ_MB(mb5_release_get_packaging, release, ctx->meta, "packaging", 0);
     READ_MB(mb5_release_get_country, release, ctx->meta, "country", 0);
-    READ_MB(mb5_release_get_status, release, ctx->meta, "status", 0);
+    READ_MB(mb5_release_get_status, release, ctx->meta, "releasestatus", 0);
 
     /* Label info */
     Mb5LabelInfoList *labelinfolist = mb5_release_get_labelinfolist(release);
