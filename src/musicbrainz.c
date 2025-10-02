@@ -322,7 +322,7 @@ static int mb_metadata(cyanrip_ctx *ctx, int manual_metadata_specified, int rele
         release = mb5_release_list_item(release_list, 0);
     }
 
-    READ_MB(mb5_release_get_id, release, ctx->meta, "release_id", 0);
+    READ_MB(mb5_release_get_id, release, ctx->meta, "musicbrainz_albumid", 0);
     READ_MB(mb5_release_get_disambiguation, release, ctx->meta, "releasecomment", 0);
     READ_MB(mb5_release_get_date, release, ctx->meta, "date", 0);
     READ_MB(mb5_release_get_title, release, ctx->meta, "album", 0);

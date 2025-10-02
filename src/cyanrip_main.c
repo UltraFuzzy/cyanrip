@@ -1930,8 +1930,8 @@ int main(int argc, char **argv)
         goto end;
     }
 
-    if (mb_release_str && !dict_get(ctx->meta, "release_id"))
-        av_dict_set(&ctx->meta, "release_id", mb_release_str, 0);
+    if (mb_release_str && !dict_get(ctx->meta, "musicbrainz_albumid"))
+        av_dict_set(&ctx->meta, "musicbrainz_albumid", mb_release_str, 0);
 
     if (discnumber)
         av_dict_set_int(&ctx->meta, "disc", discnumber, 0);

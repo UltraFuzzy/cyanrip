@@ -355,7 +355,7 @@ int crip_fill_coverart(cyanrip_ctx *ctx, int info_only)
     CURL *curl_ctx = curl_easy_init();
 
     if (!have_front || !have_back) {
-        const char *release_id = dict_get(ctx->meta, "release_id");
+        const char *release_id = dict_get(ctx->meta, "musicbrainz_albumid");
         if (!release_id && !ctx->settings.disable_coverart_db) {
             cyanrip_log(ctx, 0, "Release ID unavailable, cannot search Cover Art DB!\n");
         } else if (!ctx->settings.disable_coverart_db) {
