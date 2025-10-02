@@ -70,7 +70,7 @@ void cyanrip_cue_start(cyanrip_ctx *ctx)
         }
     }
 
-    CLOG("MCN \"%s\"\n", ctx->meta, "disc_mcn");
+    CLOG("CATALOG %s\n", ctx->meta, "disc_mcn");
     CLOG("PERFORMER \"%s\"\n", ctx->meta, "album_artist");
     CLOG("TITLE \"%s\"\n", ctx->meta, "album");
 }
