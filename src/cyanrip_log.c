@@ -283,7 +283,7 @@ void cyanrip_log_start_report(cyanrip_ctx *ctx)
     char duration[16];
     cyanrip_frames_to_duration(ctx->duration_frames, duration);
 
-    CLOG("DiscID:         %s\n", ctx->meta, "discid")
+    CLOG("DiscID:         %s\n", ctx->meta, "musicbrainz_discid")
     CLOG("Release ID:     %s\n", ctx->meta, "musicbrainz_albumid")
     CLOG("CDDB ID:        %s\n", ctx->meta, "cddb")
     CLOG("Disc MCN:       %s\n", ctx->meta, "disc_mcn")

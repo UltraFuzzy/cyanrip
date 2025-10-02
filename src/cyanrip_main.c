@@ -1856,7 +1856,7 @@ int main(int argc, char **argv)
                 ctx->settings.decode_hdcd ? "HDCD" : "CD", 0);
     const char *barcode_id = dict_get(ctx->meta, "barcode");
     const char *mcn_id = dict_get(ctx->meta, "disc_mcn");
-    const char *did_id = dict_get(ctx->meta, "discid");
+    const char *did_id = dict_get(ctx->meta, "musicbrainz_discid");
 
     if (barcode_id || mcn_id || did_id) {
         char fourcc_id[5] = { '0', '0', '0', '0', '\0' };

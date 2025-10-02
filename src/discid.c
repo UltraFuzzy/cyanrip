@@ -71,7 +71,7 @@ int crip_fill_discid(cyanrip_ctx *ctx)
         if (discid[i] == '=') discid[i] = '-';
     }
 
-    av_dict_set(&ctx->meta, "discid", discid, AV_DICT_DONT_STRDUP_VAL);
+    av_dict_set(&ctx->meta, "musicbrainz_discid", discid, AV_DICT_DONT_STRDUP_VAL);
 
     /* FreeDB */
     uint32_t cddb = 0;

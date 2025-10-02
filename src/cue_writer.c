@@ -52,12 +52,12 @@ int cyanrip_cue_init(cyanrip_ctx *ctx)
 
 void cyanrip_cue_start(cyanrip_ctx *ctx)
 {
-    CLOG("REM MUSICBRAINZ_ID \"%s\"\n", ctx->meta, "discid");
+    CLOG("REM MUSICBRAINZ_ID \"%s\"\n", ctx->meta, "musicbrainz_discid");
     CLOG("REM DISCID \"%s\"\n", ctx->meta, "cddb");
 
     const AVDictionaryEntry *d = NULL;
     while ((d = av_dict_get(ctx->meta, "", d, AV_DICT_IGNORE_SUFFIX))) {
-        if (strcmp(d->key, "discid") && strcmp(d->key, "cddb") &&
+        if (strcmp(d->key, "musicbrainz_discid") && strcmp(d->key, "cddb") &&
             strcmp(d->key, "disc_mcn") && strcmp(d->key, "album_artist") &&
             strcmp(d->key, "album") && strcmp(d->key, "title")) {
             for (int Z = 0; Z < ctx->settings.outputs_num; Z++) {

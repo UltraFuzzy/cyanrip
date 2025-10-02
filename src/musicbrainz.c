@@ -196,7 +196,7 @@ static int mb_metadata(cyanrip_ctx *ctx, int manual_metadata_specified, int rele
 
     char *names[] = { "inc" };
     char *values[] = { "recordings artist-credits" };
-    const char *discid = dict_get(ctx->meta, "discid");
+    const char *discid = dict_get(ctx->meta, "musicbrainz_discid");
     if (!discid) {
         cyanrip_log(ctx, 0, "Missing DiscID!\n");
         return 0;
