@@ -118,6 +118,37 @@ static const paranoia_mode_t paranoia_level_map[] = {
 };
 const int crip_max_paranoia_level = (sizeof(paranoia_level_map) / sizeof(paranoia_level_map[0])) - 1;
 
+/*
+* Whether the string ends with suffix
+*/
+static int cyanrip_ends_with(const char *str, const char *suffix)
+{
+    size_t lenstr = strlen(str);
+    size_t lensuffix = strlen(suffix);
+
+    if (lensuffix > lenstr)
+        return 0;
+
+    return !strncmp(str + lenstr - lensuffix, suffix, lensuffix);
+}
+
+/*
+* Open device
+ */
+static CdIo_t *cyanrip_open_dev(const char *dev_path)
+{
+    if (cyanrip_ends_with(dev_path, ".bin"))
+        return cdio_open_bincue(dev_path);
+    else if (cyanrip_ends_with(dev_path, ".cue"))
+        return cdio_open_cue(dev_path);
+    else if (cyanrip_ends_with(dev_path, ".nrg"))
+        return cdio_open_nrg(dev_path);
+    else if (cyanrip_ends_with(dev_path, ".toc"))
+        return cdio_open_cdrdao(dev_path);
+
+    return cdio_open(dev_path, DRIVER_UNKNOWN);
+}
+
 static int cyanrip_ctx_init(cyanrip_ctx **s, cyanrip_settings *settings)
 {
     cyanrip_ctx *ctx = av_mallocz(sizeof(cyanrip_ctx));
@@ -129,11 +160,19 @@ static int cyanrip_ctx_init(cyanrip_ctx **s, cyanrip_settings *settings)
 
     cdio_init();
 
-    if (!ctx->settings.dev_path)
+    if (!ctx->settings.dev_path) {
         ctx->settings.dev_path = cdio_get_default_device(NULL);
+        if (!ctx->settings.dev_path) {
+            cyanrip_log(ctx, 0, "No device specified and unable to get default device!\n");
+            cyanrip_ctx_end(&ctx);
+            return AVERROR(EINVAL);
+        }
+    }
 
-    if (!(ctx->cdio = cdio_open(ctx->settings.dev_path, DRIVER_UNKNOWN))) {
-        cyanrip_log(ctx, 0, "Unable to init cdio context\n");
+    ctx->cdio = cyanrip_open_dev(ctx->settings.dev_path);
+    if (!ctx->cdio) {
+        cyanrip_log(ctx, 0, "Unable to open device: %s\n", ctx->settings.dev_path);
+        cyanrip_ctx_end(&ctx);
         return AVERROR(EINVAL);
     }
 
@@ -1476,7 +1515,7 @@ int main(int argc, char **argv)
         case 'h':
             cyanrip_log(ctx, 0, "cyanrip %s (%s) help:\n", PROJECT_VERSION_STRING, vcstag);
             cyanrip_log(ctx, 0, "\n  Ripping options:\n");
-            cyanrip_log(ctx, 0, "    -d <path>             Set device path\n");
+            cyanrip_log(ctx, 0, "    -d <path>             Set device path (can be a TOC file)\n");
             cyanrip_log(ctx, 0, "    -s <int>              CD Drive offset in samples (default: 0)\n");
             cyanrip_log(ctx, 0, "    -r <int>              Maximum number of retries for frames and repeated rips (default: 10)\n");
             cyanrip_log(ctx, 0, "    -Z <int>              Rips tracks until their checksums match <int> number of times. For very damaged CDs.\n");
