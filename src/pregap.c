@@ -23,6 +23,7 @@
 
 // remove after testing
 #include <inttypes.h>
+#include <string.h>
 #ifdef N_DEBUG
 #undef N_DEBUG
 #endif
@@ -312,28 +313,57 @@ static void decode_subq(subq_t *subq, const uint8_t *src) {
 }
 
 
+/* Some CD drives aren't returning BCD-formatted data.
+ * This helper function will convert from a such binary stream
+ * to a BCD stream.
+ */
+static inline void raw_to_bcd(uint8_t *subq_buf) {
+    /*
+     * Convert 10 bytes of Q-channel data from Binary to BCD
+     * subq_buf[0] is control/adr, skip it.
+     * Data is bytes 1-9. CRC is 10-11.
+     */
+    for (int i = 1; i <= 9; i++)
+        subq_buf[i] = ((subq_buf[i] / 10) << 4) | (subq_buf[i] % 10);
+}
+
 static driver_return_code_t read_audio_subq_sector_with_retries(
     const CdIo_t *p_cdio,
     uint8_t *audio_subq_buf,
     const lsn_t lsn,
-    const int retry_max)
-{
-    driver_return_code_t ret = read_audio_subq_sector(p_cdio, audio_subq_buf, lsn);
-    const uint8_t *subq_buf = audio_subq_buf + CDIO_CD_FRAMESIZE_RAW;
-    unsigned crc_read = (subq_buf[10] << 8) | subq_buf[11];
-    unsigned crc_comp = crc_subq(subq_buf);
+    const int retry_max,
+    bool *is_non_bcd
+) {
+    driver_return_code_t ret;
+    uint8_t *subq_buf = audio_subq_buf + CDIO_CD_FRAMESIZE_RAW;
     int retry = 0;
-    while (retry++ < retry_max && crc_read != crc_comp) {
-        // TODO Is a cache defeat here ever necessary? Testing on macOS with an
-        // ASUS SDRW-08U7M-U, it didn't have an effect.
-        // overflow_device_read_cache(p_cdio, lsn);
-        if ((ret = read_audio_subq_sector(p_cdio, audio_subq_buf, lsn)))
-            return ret;
-        // TODO ret error handling
-        crc_read = (subq_buf[10] << 8) | subq_buf[11];
-        crc_comp = crc_subq(subq_buf);
+
+    while (retry++ < retry_max) {
+        ret = read_audio_subq_sector(p_cdio, audio_subq_buf, lsn);
+        if (ret != DRIVER_OP_SUCCESS)
+            continue; // Don't panic!
+
+        unsigned crc_read = (subq_buf[10] << 8) | subq_buf[11];
+
+        if (crc_read == crc_subq(subq_buf))
+            return DRIVER_OP_SUCCESS;
+
+        // Try to see if the drive is a cheap non-BCD drive:
+        // supplied material, is enough material.
+
+        uint8_t temp_buf[12];
+        memcpy(temp_buf, subq_buf, 12);
+        raw_to_bcd(temp_buf);
+
+        if (crc_read == crc_subq(temp_buf)) {
+            if (is_non_bcd) *is_non_bcd = true;
+            /* Apply fix to the real buffer so the caller gets valid BCD */
+            memcpy(subq_buf, temp_buf, 12);
+            return DRIVER_OP_SUCCESS;
+        }
     }
-    return ret;
+
+    return DRIVER_OP_ERROR;
 }
 
 
@@ -391,7 +421,7 @@ lsn_t cyanrip_get_track_pregap_lsn(CdIo_t *p_cdio, const track_t track_number) {
 
     // Check one sector before track start to see if there is any pregap.
     lsn = track_start_lsn - 1;
-    ret = read_audio_subq_sector_with_retries(p_cdio, audio_subq_buf, lsn, retry_max);
+    ret = read_audio_subq_sector_with_retries(p_cdio, audio_subq_buf, lsn, retry_max, NULL);
     assert(!ret);
     decode_subq(&subq, subq_buf);
     crc_comp = crc_subq(subq_buf);
@@ -411,7 +441,7 @@ lsn_t cyanrip_get_track_pregap_lsn(CdIo_t *p_cdio, const track_t track_number) {
         if (lsn == prev_track_start_lsn) {
             break;
         }
-        ret = read_audio_subq_sector_with_retries(p_cdio, audio_subq_buf, lsn, retry_max);
+        ret = read_audio_subq_sector_with_retries(p_cdio, audio_subq_buf, lsn, retry_max, NULL);
         assert(!ret);
         decode_subq(&subq, subq_buf);
         crc_comp = crc_subq(subq_buf);
@@ -448,7 +478,7 @@ lsn_t cyanrip_get_track_pregap_lsn(CdIo_t *p_cdio, const track_t track_number) {
             lsn = left_bound;
             continue;
         }
-        ret = read_audio_subq_sector_with_retries(p_cdio, audio_subq_buf, lsn, retry_max);
+        ret = read_audio_subq_sector_with_retries(p_cdio, audio_subq_buf, lsn, retry_max, NULL);
         assert(!ret);
         decode_subq(&subq, subq_buf);
         crc_comp = crc_subq(subq_buf);
