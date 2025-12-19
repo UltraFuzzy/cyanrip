@@ -61,6 +61,12 @@ sources = [
                       fallback: 'release')
 ]
 
+if host_machine.system() == 'darwin'
+    sources += 'subq_read_macos.c'
+else
+    sources += 'subq_read_mmc.c'
+endif
+
 # Check for wmain support (Windows/MinGW)
 if cc.links('int wmain() { return 0; }', args: '-municode')
      conf.set('HAVE_WMAIN', 1)
